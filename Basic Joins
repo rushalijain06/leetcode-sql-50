@@ -1,0 +1,35 @@
+1) Replace Employee ID With The Unique Identifier
+SELECT unique_id, name
+FROM Employees AS e
+LEFT JOIN
+EmployeeUNI AS eu ON e.id = eu.id;
+
+2) Product Sales Analysis I
+SELECT
+product_name, year, price
+FROM Sales s
+LEFT JOIN
+Product p ON s.product_id = p.product_id;
+
+3) Customer Who Visited but Did Not Make Any Transactions
+SELECT customer_id, COUNT(customer_id) AS count_no_trans
+FROM Visits v
+LEFT JOIN Transactions t ON v.visit_id = t.visit_id
+WHERE transaction_id IS null
+GROUP BY customer_id;
+
+4) Rising Temperature
+SELECT w1.id
+FROM Weather w1, Weather w2 
+WHERE DATEDIFF(w1.recordDate, w2.recordDate) = 1
+AND w1.temperature > w2.temperature;
+
+5) Average Time of Process per Machine
+SELECT a1.machine_id, ROUND(AVG(a1.timestamp-a2.timestamp),3) AS processing_time
+FROM Activity a1, Activity a2
+WHERE a1.process_id = a2.process_id
+AND a1.activity_type != a2.activity_type
+AND a1.machine_id = a2.machine_id
+AND a1.timestamp > a2.timestamp
+GROUP BY a1.machine_id
+ORDER BY a1.machine_id, a1.process_id;
