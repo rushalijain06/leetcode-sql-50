@@ -1,0 +1,78 @@
+1) Not Boring Movies
+select * 
+    FROM Cinema 
+        WHERE id % 2 !=0 AND description != 'boring'
+        ORDER BY rating DESC;
+
+2) Average Selling Price
+SELECT p.product_id, IFNULL(ROUND(SUM(price * units)/SUM(units),2),0) AS average_price
+FROM Prices p
+LEFT JOIN
+UnitsSold us ON p.product_id = us.product_id
+AND purchase_date BETWEEN start_date AND end_date
+ GROUP BY p.product_id;
+
+3) Project Employees I
+SELECT project_id, ROUND(SUM(experience_years)/COUNT(experience_years),2) AS average_years
+FROM Project p
+INNER JOIN
+Employee e ON p.employee_id = e.employee_id
+GROUP BY project_id;
+
+4) Percentage of Users Attended a Contest
+with User_Count AS(
+    SELECT COUNT(user_id) AS count_users
+    FROM Users
+)
+
+SELECT
+    contest_id, ROUND(COUNT(contest_id)/count_users * 100, 2) AS percentage
+FROM Register, User_Count
+GROUP BY contest_id
+ORDER BY percentage DESC, contest_id ASC;
+
+5) Queries Quality and Percentage
+ SELECT query_name, ROUND(SUM(rating/position)/COUNT(*),2) AS quality,
+    ROUND(SUM(CASE WHEN rating < 3 THEN 1 ELSE 0 END)/COUNT(*) * 100,2) AS poor_query_percentage
+    FROM Queries
+    WHERE query_name IS NOT null
+    GROUP BY query_name;
+
+6) Monthly Transactions I
+SELECT
+ DATE_FORMAT(trans_date,'%Y-%m') AS month, country, COUNT(*) AS trans_count, 
+ SUM(CASE WHEN state = 'approved' THEN 1 ELSE 0 END ) AS approved_count, SUM(amount) AS trans_total_amount, 
+ SUM(CASE WHEN state = 'approved' THEN amount ELSE 0 END) AS approved_total_amount
+FROM Transactions
+GROUP BY month, country
+
+7) Immediate Food Delivery II
+WITH immediate_orders AS(
+SELECT 
+    CASE WHEN order_date = customer_pref_delivery_date THEN 1 ELSE 0 END AS immediate
+FROM Delivery
+WHERE (customer_id,order_date) IN (SELECT customer_id, MIN(order_date) FROM Delivery GROUP BY customer_id)
+GROUP BY customer_id
+ )
+
+
+SELECT ROUND(AVG(immediate) * 100,2) AS immediate_percentage
+FROM immediate_orders;
+
+8) Game Play Analysis IV
+WITH count_players AS(
+    SELECT COUNT(DISTINCT(player_id)) AS unique_players
+    FROM Activity
+), 
+First_login AS(
+    SELECT player_id, MIN(event_date) AS first_login_date
+    FROM Activity 
+    GROUP BY player_id
+)
+SELECT 
+IFNULL(ROUND(COUNT(*)/unique_players,2),0) as fraction
+FROM count_players, Activity a CROSS JOIN First_login fl
+WHERE 
+DATEDIFF(event_date, first_login_date) = 1 AND a.player_id = fl.player_id
+;
+
