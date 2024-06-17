@@ -1,0 +1,87 @@
+1) Employees Whose Manager Left the Company
+SELECT employee_id
+FROM Employees
+WHERE salary < 30000 AND manager_id NOT IN (SELECT employee_id FROM Employees)
+ORDER BY employee_id;
+
+2) Exchange Seats
+SELECT employee_id
+FROM Employees
+WHERE salary < 30000 AND manager_id NOT IN (SELECT employee_id FROM Employees)
+ORDER BY employee_id;
+
+3) Movie Rating
+WITH UserName AS(
+SELECT u.user_id, name, COUNT(u.user_id), DENSE_RANK() OVER(ORDER BY COUNT(user_id) DESC, name ASC) AS rnk
+FROM 
+MovieRating mr
+JOIN Users u
+ON u.user_id = mr.user_id
+GROUP BY u.user_id 
+),
+HighestRating AS(SELECT m.movie_id, title, AVG(rating), DENSE_RANK() OVER(ORDER BY AVG(rating) DESC, title ASC) AS rnk1
+FROM Movies m
+JOIN MovieRating mr
+ON m.movie_id = mr.movie_id
+WHERE MONTH(created_at) = 02 AND YEAR(created_at) = 2020
+GROUP BY m.movie_id)
+
+SELECT name AS results FROM UserName WHERE rnk = 1 
+UNION ALL
+SELECT title AS results FROM HighestRating WHERE  rnk1 = 1 
+ORDER BY results ASC ;
+
+4) Restaurant Growth
+WITH UserName AS(
+SELECT u.user_id, name, COUNT(u.user_id), DENSE_RANK() OVER(ORDER BY COUNT(user_id) DESC, name ASC) AS rnk
+FROM 
+MovieRating mr
+JOIN Users u
+ON u.user_id = mr.user_id
+GROUP BY u.user_id 
+),
+HighestRating AS(SELECT m.movie_id, title, AVG(rating), DENSE_RANK() OVER(ORDER BY AVG(rating) DESC, title ASC) AS rnk1
+FROM Movies m
+JOIN MovieRating mr
+ON m.movie_id = mr.movie_id
+WHERE MONTH(created_at) = 02 AND YEAR(created_at) = 2020
+GROUP BY m.movie_id)
+
+SELECT name AS results FROM UserName WHERE rnk = 1 
+UNION ALL
+SELECT title AS results FROM HighestRating WHERE  rnk1 = 1 
+ORDER BY results ASC ;
+
+5) Friend Requests II: Who Has the Most Friends
+WITH cnt1 AS(
+    SELECT requester_id AS id, COUNT(requester_id) AS c1 
+FROM RequestAccepted
+GROUP BY requester_id
+UNION ALL
+SELECT accepter_id AS id, COUNT(accepter_id) AS c1
+FROM RequestAccepted
+GROUP BY accepter_id
+),
+max_friends AS(
+    SELECT id, SUM(c1) AS num, DENSE_RANK() OVER(ORDER BY SUM(c1) DESC) AS rnk FROM cnt1
+GROUP BY id
+)
+
+SELECT id, num FROM max_friends
+WHERE rnk = 1;
+
+6) Investments in 2016
+SELECT ROUND(SUM(tiv_2016),2) AS tiv_2016
+FROM Insurance
+WHERE (lat, lon) IN (SELECT lat, lon FROM Insurance GROUP BY lat, lon HAVING COUNT(*)=1)
+AND tiv_2015 IN (SELECT tiv_2015 FROM Insurance GROUP BY tiv_2015
+HAVING COUNT(tiv_2015) > 1);
+
+7) Department Top Three Salaries
+SELECT Department, Employee, Salary
+FROM (SELECT d.name AS Department, e.name AS Employee, salary AS Salary,
+DENSE_RANK() OVER(PARTITION BY departmentId ORDER BY salary DESC) AS rnk
+FROM Employee e
+INNER JOIN Department d
+ON e.departmentId = d.id) AS sub
+WHERE rnk <= 3;
