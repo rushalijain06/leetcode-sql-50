@@ -1,0 +1,42 @@
+1) Fix Names in a Table
+SELECT user_id, CONCAT(UPPER(LEFT(name,1)), LOWER(SUBSTRING(name,2))) AS name
+FROM Users
+ORDER BY user_id;
+
+2) Patients With a Condition
+SELECT patient_id, patient_name, conditions
+FROM Patients
+WHERE conditions LIKE 'DIAB1%' OR conditions LIKE '% DIAB1%'
+
+3) Delete Duplicate Emails
+DELETE FROM Person
+WHERE id NOT IN (
+    SELECT id FROM (SELECT MIN(id) as id FROM Person GROUP BY email) AS SQ
+    ) 
+
+4) Second Highest Salary
+WITH Maxsalary AS(
+    SELECT id, salary, dense_rank() OVER(ORDER BY salary DESC) AS rnk
+    FROM Employee
+)
+
+SELECT MAX(salary) AS SecondHighestSalary 
+    FROM Maxsalary WHERE rnk = 2;
+
+5) Group Sold Products By The Date
+SELECT sell_date, COUNT(DISTINCT product) num_sold, GROUP_CONCAT(DISTINCT product ORDER BY product ASC) products
+FROM Activities GROUP BY sell_date;
+
+6) List the Products Ordered in a Period
+SELECT product_name, SUM(unit) AS unit
+FROM Products p 
+JOIN Orders o
+ON p.product_id = o.product_id
+WHERE MONTH(order_date) = 02 AND YEAR(order_date) = 2020 
+GROUP BY product_name
+HAVING SUM(unit) >= 100
+;
+
+7) Find Users With Valid E-Mails
+SELECT * FROM Users
+WHERE mail REGEXP '^[A-Za-z][A-Za-z0-9._-]*@leetcode[.]com$'
